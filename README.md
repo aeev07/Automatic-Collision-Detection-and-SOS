@@ -19,10 +19,10 @@ cd frontend && npm install && npm run dev
 ## Ownership (do not edit another person's folder)
 | Folder | Owner | Branch |
 |---|---|---|
-| backend/ (core) | N | feature/emergency-backend |
-| backend/notifications, patients, auth | Backend teammate | feature/backend-notifications |
-| collision_engine/, hospital_intelligence/ | _name_ | feature/collision-detection, feature/hospital-finder |
-| frontend/ | _name_ | feature/hospital-dashboard |
+| backend/ (core) | Nivedita | feature/emergency-backend |
+| backend/notifications, patients, auth | Freny | feature/backend-notifications |
+| collision_engine/, hospital_intelligence/ | Devansh | feature/collision-detection, feature/hospital-finder |
+| frontend/ | Vaibhav | feature/hospital-dashboard |
 
 Shared contracts: see `docs/CONTRACTS.md`. Change them only by telling the group.
 
