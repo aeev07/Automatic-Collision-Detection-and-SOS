@@ -70,7 +70,7 @@ export const accidentService = {
         filtered = filtered.filter(a => 
           a.accident_id.toLowerCase().includes(query) ||
           a.vehicle_id.toLowerCase().includes(query) ||
-          a.patient_id.toLowerCase().includes(query) ||
+          (a.patient_id ?? '').toLowerCase().includes(query) ||
           (a.selected_hospital?.name && a.selected_hospital.name.toLowerCase().includes(query))
         );
       }
@@ -208,7 +208,17 @@ export const accidentService = {
     // If connected to real backend, call POST /api/v1/events
     const res = await this.fetchWithAuth('/api/v1/events', {
       method: 'POST',
-      body: JSON.stringify(newAccident)
+      body: JSON.stringify({
+        event_id: newAccident.accident_id,
+        vehicle_id: newAccident.vehicle_id,
+        timestamp: newAccident.timestamp,
+        severity: newAccident.severity,
+        impact_magnitude: newAccident.impact_magnitude,
+        confidence_score: 0.9,
+        detection_reason: newAccident.detection_reason,
+        latitude: newAccident.latitude,
+        longitude: newAccident.longitude
+      })
     });
     if (!res.ok) {
       throw new Error(`Failed to post new event to backend (${res.status})`);
