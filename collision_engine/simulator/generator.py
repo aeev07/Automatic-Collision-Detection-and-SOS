@@ -56,6 +56,7 @@ class IMUScenarioGenerator:
         Pothole impact: High instantaneous vertical spike (7.5g - 8.5g)
         lasting strictly 1-2 samples (<20ms), with minimal angular rotation (<10 deg/s).
         Key false-positive test for naive 6g threshold detectors.
+        
         """
         readings = []
         for t in range(0, duration_ms, step_ms):

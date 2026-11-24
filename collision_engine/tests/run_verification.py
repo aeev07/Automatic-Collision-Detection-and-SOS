@@ -1,3 +1,11 @@
+import sys
+from pathlib import Path
+
+# Ensure repository root is in sys.path regardless of execution directory
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 import json
 from collision_engine.simulator.generator import IMUScenarioGenerator
 from collision_engine.detection.detector import MultiStageCollisionDetector
