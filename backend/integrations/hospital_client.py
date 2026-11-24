@@ -36,8 +36,14 @@ def find_nearest_hospital(latitude: float, longitude: float) -> Dict[str, Any]:
             hospitals: list = data.get("hospitals", [])
             if not hospitals:
                 raise ValueError("Hospital service returned empty list")
-            # Sort by distance and pick the nearest
-            hospitals.sort(key=lambda h: h.get("distance_km") or float("inf"))
+            # Sort by shortest ETA, then actual road distance, falling back to straight-line distance
+            hospitals.sort(
+                key=lambda h: (
+                    h["eta_min"] if h.get("eta_min") is not None else float("inf"),
+                    h["road_distance_km"] if h.get("road_distance_km") is not None else float("inf"),
+                    h["distance_km"] if h.get("distance_km") is not None else float("inf"),
+                )
+            )
             nearest = hospitals[0]
             nearest["source"] = data.get("source", "overpass")
             logger.info("Hospital fetched from live service: %s", nearest.get("name"))
