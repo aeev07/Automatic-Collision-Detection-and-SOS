@@ -43,6 +43,7 @@ export function useAccidentPolling(): UseAccidentPollingResult {
   const enrichWithPatient = useCallback(async (accList: Accident[]): Promise<AccidentDetail[]> => {
     return Promise.all(
       accList.map(async (acc) => {
+        if (!acc.patient_id) return { ...acc, patient: null };
         let patient = patientCache.current[acc.patient_id];
         if (!patient) {
           try {
@@ -134,9 +135,17 @@ export function useAccidentPolling(): UseAccidentPollingResult {
     try {
       soundEffects.playClick();
       const updated = await accidentService.acknowledgeAccident(accidentId);
-      let patient = patientCache.current[updated.patient_id];
-      if (!patient) {
-        patient = await accidentService.getPatientById(updated.patient_id);
+      let patient: Patient | undefined;
+      if (updated.patient_id) {
+        patient = patientCache.current[updated.patient_id];
+        if (!patient) {
+          try {
+            patient = await accidentService.getPatientById(updated.patient_id);
+            patientCache.current[updated.patient_id] = patient;
+          } catch {
+            // non-fatal: show the accident without a patient card
+          }
+        }
       }
       const detailed: AccidentDetail = {
         ...updated,
@@ -155,12 +164,16 @@ export function useAccidentPolling(): UseAccidentPollingResult {
   const injectSimulation = useCallback(async (preset: Partial<Accident>) => {
     const newAccident = await accidentService.injectCollisionEvent(preset);
     soundEffects.playCrashAlertSound();
-    let patient = patientCache.current[newAccident.patient_id];
-    if (!patient) {
-      try {
-        patient = await accidentService.getPatientById(newAccident.patient_id);
-      } catch {
-        // fallback
+    let patient: Patient | undefined;
+    if (updated.patient_id) {
+      patient = patientCache.current[updated.patient_id];
+      if (!patient) {
+        try {
+          patient = await accidentService.getPatientById(updated.patient_id);
+          patientCache.current[updated.patient_id] = patient;
+        } catch {
+          // non-fatal: show the accident without a patient card
+        }
       }
     }
     const detailed: AccidentDetail = {
