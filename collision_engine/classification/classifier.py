@@ -79,8 +79,8 @@ class CollisionClassifier:
         # Case 4: True Collision Detection with Multi-Stage Validation
         # Requires both:
         # a) Minimum sustained impact duration (>= 20ms)
-        # b) Angular rate perturbation (> 20 deg/s) OR high peak (> 8.0g)
-        if duration_ms >= 20 and (gyro_peak >= 25.0 or peak_g >= 7.5):
+        # b) Angular rate perturbation (>= 15.0 deg/s) OR high peak (>= 7.5g)
+        if duration_ms >= 20 and (gyro_peak >= 15.0 or peak_g >= 7.5):
             # Grade severity
             if peak_g >= 12.0 or metrics.delta_v_ms >= 10.0:
                 severity = SeverityLevel.CRITICAL
