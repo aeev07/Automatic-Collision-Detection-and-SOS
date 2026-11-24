@@ -1,0 +1,89 @@
+@import "leaflet/dist/leaflet.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #0b1224;
+    color: #f1f5f9;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Custom Tactical Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #0d162b;
+}
+::-webkit-scrollbar-thumb {
+  background: #233454;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3b507d;
+}
+
+/* Vibrant Mixed Ambient Lighting Orbs */
+.ambient-light-cyan {
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.32) 0%, rgba(14, 165, 233, 0.12) 45%, transparent 70%);
+}
+.ambient-light-purple {
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.28) 0%, rgba(99, 102, 241, 0.12) 45%, transparent 70%);
+}
+.ambient-light-amber {
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, transparent 65%);
+}
+.ambient-light-red {
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.25) 0%, transparent 65%);
+}
+
+/* Subtle Tactical Grid */
+.bg-grid-mesh {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+}
+
+.radar-sweep {
+  background: conic-gradient(from 0deg at 50% 50%, rgba(6, 182, 212, 0.35) 0deg, transparent 65deg, transparent 360deg);
+}
+
+/* Leaflet Container Overrides */
+.leaflet-container {
+  background: #09101f !important;
+  font-family: inherit;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 1 !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: #0f1a30 !important;
+  color: #f8fafc !important;
+  border: 1px solid #233454 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.7) !important;
+}
+.leaflet-popup-tip {
+  background: #0f1a30 !important;
+}
+
+/* Glowing text & borders */
+.glow-red {
+  box-shadow: 0 0 30px -5px rgba(239, 68, 68, 0.4);
+}
+.glow-amber {
+  box-shadow: 0 0 30px -5px rgba(245, 158, 11, 0.35);
+}
+.glow-cyan {
+  box-shadow: 0 0 30px -5px rgba(6, 182, 212, 0.35);
+}
+.glow-emerald {
+  box-shadow: 0 0 30px -5px rgba(34, 197, 94, 0.35);
+}
