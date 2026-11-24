@@ -57,24 +57,31 @@ MOCK_HOSPITALS_DATABASE: List[Dict[str, Any]] = [
 
 def get_mock_hospitals_for_location(lat: float, lon: float, radius_km: float = 15.0) -> List[Dict[str, Any]]:
     """
-    Returns mock hospitals filtered within radius_km.
+    Returns mock hospitals filtered within radius_km, auto-expanding up to 30km
+    if the requested radius yields zero facilities.
     If the requested coordinates are far from Lucknow, generates dynamically positioned
-    emergency facilities relative to the given coordinates so that demos anywhere succeed!
+    emergency facilities relative to the given coordinates so that demos anywhere succeed.
     """
-    results = []
-    for h in MOCK_HOSPITALS_DATABASE:
-        dist = haversine_distance(lat, lon, h["latitude"], h["longitude"])
-        if dist <= radius_km:
-            results.append({
-                "name": h["name"],
-                "latitude": h["latitude"],
-                "longitude": h["longitude"],
-                "address": h["address"],
-                "phone": h["phone"],
-                "distance_km": dist
-            })
+    search_radii = [radius_km] if radius_km >= 30.0 else [radius_km, 30.0]
+
+    for active_radius in search_radii:
+        results = []
+        for h in MOCK_HOSPITALS_DATABASE:
+            dist = haversine_distance(lat, lon, h["latitude"], h["longitude"])
+            if dist <= active_radius:
+                results.append({
+                    "name": h["name"],
+                    "latitude": h["latitude"],
+                    "longitude": h["longitude"],
+                    "address": h["address"],
+                    "phone": h["phone"],
+                    "distance_km": dist
+                })
+        if results:
+            return results
 
     # Dynamic fallback if query location is far away (e.g. testing in Delhi, Mumbai, or internationally)
+    results = []
     if not results:
         offsets = [
             ("Central District Trauma Center", 0.015, 0.012, "Main Medical Blvd", "+91 11 2345 6789"),

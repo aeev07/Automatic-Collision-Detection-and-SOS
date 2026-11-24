@@ -29,55 +29,57 @@ def fetch_hospitals_overpass(lat: float, lon: float, radius_km: float = 15.0) ->
         mock_hospitals = get_mock_hospitals_for_location(lat, lon, radius_km)
         return mock_hospitals, "mock"
 
-    radius_meters = int(radius_km * 1000)
-    query = f"""
-    [out:json][timeout:1];
-    (
-      node["amenity"="hospital"](around:{radius_meters},{lat},{lon});
-      node["healthcare"="hospital"](around:{radius_meters},{lat},{lon});
-    );
-    out body 15;
-    """
-
     headers = {
         "User-Agent": "VehicleCollisionEmergencySOS/1.0 (emergency-dispatch-research; contact@emergencysos.org)",
         "Accept": "application/json"
     }
 
+    search_radii = [radius_km] if radius_km >= 30.0 else [radius_km, 30.0]
+
     try:
         with httpx.Client(timeout=OVERPASS_TIMEOUT_SEC, headers=headers) as client:
-            resp = client.post(OVERPASS_API_URL, data={"data": query})
-            resp.raise_for_status()
-            data = resp.json()
-            elements = data.get("elements", [])
+            for active_radius in search_radii:
+                radius_meters = int(active_radius * 1000)
+                query = f"""
+                [out:json][timeout:1];
+                (
+                  node["amenity"="hospital"](around:{radius_meters},{lat},{lon});
+                  node["healthcare"="hospital"](around:{radius_meters},{lat},{lon});
+                );
+                out body 15;
+                """
+                resp = client.post(OVERPASS_API_URL, data={"data": query})
+                resp.raise_for_status()
+                data = resp.json()
+                elements = data.get("elements", [])
 
-            hospitals = []
-            for el in elements:
-                tags = el.get("tags", {})
-                name = tags.get("name") or tags.get("name:en") or "Emergency Hospital"
-                h_lat = el.get("lat")
-                h_lon = el.get("lon")
+                hospitals = []
+                for el in elements:
+                    tags = el.get("tags", {})
+                    name = tags.get("name") or tags.get("name:en") or "Emergency Hospital"
+                    h_lat = el.get("lat")
+                    h_lon = el.get("lon")
 
-                if h_lat is None or h_lon is None:
-                    continue
+                    if h_lat is None or h_lon is None:
+                        continue
 
-                dist = haversine_distance(lat, lon, h_lat, h_lon)
-                address = tags.get("addr:street") or tags.get("addr:full") or None
-                phone = tags.get("phone") or tags.get("contact:phone") or None
+                    dist = haversine_distance(lat, lon, h_lat, h_lon)
+                    address = tags.get("addr:street") or tags.get("addr:full") or None
+                    phone = tags.get("phone") or tags.get("contact:phone") or None
 
-                hospitals.append({
-                    "name": name,
-                    "latitude": round(h_lat, 5),
-                    "longitude": round(h_lon, 5),
-                    "address": address,
-                    "phone": phone,
-                    "distance_km": dist
-                })
+                    hospitals.append({
+                        "name": name,
+                        "latitude": round(h_lat, 5),
+                        "longitude": round(h_lon, 5),
+                        "address": address,
+                        "phone": phone,
+                        "distance_km": dist
+                    })
 
-            if hospitals:
-                _last_overpass_failure_ts = 0.0
-                logger.info(f"Overpass API returned {len(hospitals)} live hospitals.")
-                return hospitals, "overpass"
+                if hospitals:
+                    _last_overpass_failure_ts = 0.0
+                    logger.info(f"Overpass API returned {len(hospitals)} live hospitals (radius={active_radius}km).")
+                    return hospitals, "overpass"
 
     except Exception as exc:
         _last_overpass_failure_ts = time.monotonic()
