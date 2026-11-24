@@ -27,12 +27,12 @@ export interface Accident {
   notification_status: NotificationStatus;
   acknowledged: boolean;
   acknowledged_at: string | null;
-  patient_id: string;
+  patient_id: string | null;
   detection_reason?: string | null;
 }
 
 export interface Patient {
-  patient_id: string;
+  patient_id: string | null;
   name: string;
   blood_group: string;
   allergies: string[];
