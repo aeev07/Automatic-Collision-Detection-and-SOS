@@ -1,4 +1,5 @@
 import logging
+import time
 from typing import List, Dict, Any, Tuple
 import httpx
 
@@ -8,7 +9,11 @@ from hospital_intelligence.discovery.mock_data import get_mock_hospitals_for_loc
 logger = logging.getLogger(__name__)
 
 OVERPASS_API_URL = "https://overpass-api.de/api/interpreter"
-OVERPASS_TIMEOUT_SEC = 3.5
+# Kept tight (1.5s) so combined discovery + OSRM fits well within backend's 5.0s timeout
+OVERPASS_TIMEOUT_SEC = 1.5
+# Skip repeated Overpass timeouts for 60s after a failure so consecutive requests are instant
+_OVERPASS_COOLDOWN_SEC = 60.0
+_last_overpass_failure_ts: float = 0.0
 
 
 def fetch_hospitals_overpass(lat: float, lon: float, radius_km: float = 15.0) -> Tuple[List[Dict[str, Any]], str]:
@@ -17,9 +22,16 @@ def fetch_hospitals_overpass(lat: float, lon: float, radius_km: float = 15.0) ->
     Falls back gracefully to high-fidelity mock data on timeout or connection error.
     Returns: (hospitals_list, source_string: 'overpass' | 'mock')
     """
+    global _last_overpass_failure_ts
+
+    now = time.monotonic()
+    if _last_overpass_failure_ts and (now - _last_overpass_failure_ts) < _OVERPASS_COOLDOWN_SEC:
+        mock_hospitals = get_mock_hospitals_for_location(lat, lon, radius_km)
+        return mock_hospitals, "mock"
+
     radius_meters = int(radius_km * 1000)
     query = f"""
-    [out:json][timeout:3];
+    [out:json][timeout:1];
     (
       node["amenity"="hospital"](around:{radius_meters},{lat},{lon});
       node["healthcare"="hospital"](around:{radius_meters},{lat},{lon});
@@ -63,10 +75,12 @@ def fetch_hospitals_overpass(lat: float, lon: float, radius_km: float = 15.0) ->
                 })
 
             if hospitals:
+                _last_overpass_failure_ts = 0.0
                 logger.info(f"Overpass API returned {len(hospitals)} live hospitals.")
                 return hospitals, "overpass"
 
     except Exception as exc:
+        _last_overpass_failure_ts = time.monotonic()
         logger.warning(f"Overpass query failed ({exc}). Engaging mock data fallback.")
 
     # Mock data fallback

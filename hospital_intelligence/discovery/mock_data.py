@@ -4,6 +4,13 @@ from hospital_intelligence.gps.distance import haversine_distance
 # High-fidelity emergency hospitals around Lucknow reference center (26.8467, 80.9462)
 MOCK_HOSPITALS_DATABASE: List[Dict[str, Any]] = [
     {
+        "name": "Civil Hospital Hazratganj",
+        "latitude": 26.8510,
+        "longitude": 80.9450,
+        "address": "Park Rd, Hazratganj, Lucknow, Uttar Pradesh 226001",
+        "phone": "+91 522 223 9012"
+    },
+    {
         "name": "King George's Medical University (Trauma Centre)",
         "latitude": 26.8703,
         "longitude": 80.9174,

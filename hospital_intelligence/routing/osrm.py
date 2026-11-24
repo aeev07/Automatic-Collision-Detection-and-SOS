@@ -7,7 +7,7 @@ from hospital_intelligence.gps.distance import estimate_road_distance_and_eta
 logger = logging.getLogger(__name__)
 
 OSRM_ROUTE_URL = "https://router.project-osrm.org/route/v1/driving"
-OSRM_TIMEOUT_SEC = 2.5
+OSRM_TIMEOUT_SEC = 1.8
 
 
 def calculate_route_and_eta(
@@ -19,7 +19,7 @@ def calculate_route_and_eta(
     Falls back to geometric Haversine estimation on timeout or network error.
     Note: GeoJSON coordinates are [lon, lat], which are converted to [lat, lon] per CONTRACTS.md.
     """
-    url = f"{OSRM_ROUTE_URL}/{start_lon},{start_lat};{dest_lon},{dest_lat}?overview=simplified&geometries=geojson"
+    url = f"{OSRM_ROUTE_URL}/{start_lon},{start_lat};{dest_lon},{dest_lat}?overview=full&geometries=geojson"
 
     try:
         with httpx.Client(timeout=OSRM_TIMEOUT_SEC) as client:
