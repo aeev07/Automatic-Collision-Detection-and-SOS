@@ -31,7 +31,9 @@ def run_all_tests():
     for sc in scenarios:
         req = IMUScenarioGenerator.get_scenario(sc)
         metrics = detector.analyze(req.readings)
-        res = CollisionClassifier.classify(metrics, "VH-101", "2026-11-24T14:30:00Z")
+        res = CollisionClassifier.classify(
+            metrics, "VH-101", "2026-11-24T14:30:00Z", threshold_g=detector.threshold_g
+        )
         results[sc] = (res, metrics)
 
         sev = res.severity.value if res.severity else "None"
