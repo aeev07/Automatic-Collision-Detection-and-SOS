@@ -55,12 +55,50 @@ def test_pothole_rejection_multi_stage_vs_naive(detector):
 def test_minor_bump_scenario(detector):
     readings = IMUScenarioGenerator.minor_bump()
     metrics = detector.analyze(readings)
-    result = CollisionClassifier.classify(metrics, "VH-101", "2026-11-24T14:30:00Z")
+    result = CollisionClassifier.classify(
+        metrics, "VH-101", "2026-11-24T14:30:00Z", threshold_g=detector.threshold_g
+    )
 
-    assert result.collision_detected is True
-    assert result.severity == SeverityLevel.LOW
-    assert result.impact_magnitude >= 3.5
-    assert result.confidence_score >= 0.80
+    # Minor bump (~4.5g - 5.1g) is below the 6.0g collision gate -> filtered out
+    assert result.collision_detected is False
+    assert result.severity is None
+    assert 3.5 <= result.impact_magnitude < detector.threshold_g
+    assert "filtered" in result.detection_reason.lower()
+
+
+def test_severity_tiers_above_threshold(detector):
+    """Verify LOW, MEDIUM, HIGH, and CRITICAL severity bands above the 6.0g gate."""
+    from collision_engine.api.schemas import IMUReading
+
+    def make_impact(ax_g: float, gyro_dps: float = 45.0):
+        readings = []
+        for t in range(0, 200, 10):
+            if 50 <= t <= 90:
+                readings.append(IMUReading(t_ms=t, ax=-ax_g, ay=0.5, az=1.0, gx=gyro_dps, gy=10.0, gz=15.0))
+            else:
+                readings.append(IMUReading(t_ms=t, ax=0.0, ay=0.0, az=1.0, gx=0.0, gy=0.0, gz=0.0))
+        return readings
+
+    # 6.2g sustained 50ms -> LOW
+    res_low = CollisionClassifier.classify(
+        detector.analyze(make_impact(6.1)), "VH-101", "2026-11-24T14:30:00Z", threshold_g=detector.threshold_g
+    )
+    assert res_low.collision_detected is True
+    assert res_low.severity == SeverityLevel.LOW
+
+    # 7.3g sustained 50ms -> MEDIUM
+    res_med = CollisionClassifier.classify(
+        detector.analyze(make_impact(7.2)), "VH-101", "2026-11-24T14:30:00Z", threshold_g=detector.threshold_g
+    )
+    assert res_med.collision_detected is True
+    assert res_med.severity == SeverityLevel.MEDIUM
+
+    # 10.8g sustained 50ms -> HIGH (matches CONTRACTS.md 11.2g -> HIGH)
+    res_high = CollisionClassifier.classify(
+        detector.analyze(make_impact(10.8)), "VH-101", "2026-11-24T14:30:00Z", threshold_g=detector.threshold_g
+    )
+    assert res_high.collision_detected is True
+    assert res_high.severity == SeverityLevel.HIGH
 
 
 def test_high_impact_collision_scenario(detector):

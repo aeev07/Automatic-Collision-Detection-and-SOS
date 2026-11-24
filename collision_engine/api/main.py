@@ -58,7 +58,8 @@ def analyze_collision(payload: CollisionAnalysisRequest) -> CollisionAnalysisRes
     result = CollisionClassifier.classify(
         metrics=metrics,
         vehicle_id=payload.vehicle_id,
-        timestamp=payload.timestamp
+        timestamp=payload.timestamp,
+        threshold_g=detector.threshold_g
     )
     return result
 

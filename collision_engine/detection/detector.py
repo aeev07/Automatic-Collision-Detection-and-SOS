@@ -71,8 +71,8 @@ class MultiStageCollisionDetector:
             if g_norm > peak_angular:
                 peak_angular = g_norm
 
-        # Naive baseline: simply checks if any sample exceeded 6.0g
-        naive_triggered = peak_g >= 6.0
+        # Naive baseline: simply checks if any sample exceeded threshold_g (default 6.0g)
+        naive_triggered = peak_g >= self.threshold_g
 
         # Temporal persistence: count consecutive duration where a_norm >= 3.5g
         # Real vehicle impacts last >30ms; potholes/curbs rebound within <15ms
