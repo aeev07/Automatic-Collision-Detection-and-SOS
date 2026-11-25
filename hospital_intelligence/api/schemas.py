@@ -9,11 +9,11 @@ class NearestHospitalsRequest(BaseModel):
 
 
 class HospitalItem(BaseModel):
-    name: str = Field(..., json_schema_extra={"example": "King George's Medical University"})
+    name: str = Field(..., json_schema_extra={"example": "Example Hospital (demo data)"})
     latitude: float = Field(..., json_schema_extra={"example": 26.8703})
     longitude: float = Field(..., json_schema_extra={"example": 80.9174})
-    address: Optional[str] = Field(None, json_schema_extra={"example": "Shah Mina Rd, Chowk, Lucknow"})
-    phone: Optional[str] = Field(None, json_schema_extra={"example": "+91 522 225 7450"})
+    address: Optional[str] = Field(None, json_schema_extra={"example": None})
+    phone: Optional[str] = Field(None, json_schema_extra={"example": None})
     distance_km: float = Field(..., description="Straight line Haversine distance in km")
     road_distance_km: float = Field(..., description="Actual road travel distance in km")
     eta_min: int = Field(..., description="Estimated travel time in minutes")
