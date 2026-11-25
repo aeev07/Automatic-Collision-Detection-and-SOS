@@ -15,7 +15,7 @@ from backend.integrations.mock_hospitals import get_mock_hospitals
 
 logger = logging.getLogger(__name__)
 
-TIMEOUT_SECONDS = 5.0
+TIMEOUT_SECONDS = 12.0
 
 
 def find_nearest_hospital(latitude: float, longitude: float) -> Dict[str, Any]:

@@ -9,8 +9,8 @@ from hospital_intelligence.discovery.mock_data import get_mock_hospitals_for_loc
 logger = logging.getLogger(__name__)
 
 OVERPASS_API_URL = "https://overpass-api.de/api/interpreter"
-# Kept tight (1.5s) so combined discovery + OSRM fits well within backend's 5.0s timeout
-OVERPASS_TIMEOUT_SEC = 1.5
+# Public Overpass is often slow; backend timeout is 12s so discovery + OSRM still fit
+OVERPASS_TIMEOUT_SEC = 3.0
 # Skip repeated Overpass timeouts for 60s after a failure so consecutive requests are instant
 _OVERPASS_COOLDOWN_SEC = 60.0
 _last_overpass_failure_ts: float = 0.0
@@ -41,12 +41,9 @@ def fetch_hospitals_overpass(lat: float, lon: float, radius_km: float = 15.0) ->
             for active_radius in search_radii:
                 radius_meters = int(active_radius * 1000)
                 query = f"""
-                [out:json][timeout:1];
-                (
-                  node["amenity"="hospital"](around:{radius_meters},{lat},{lon});
-                  node["healthcare"="hospital"](around:{radius_meters},{lat},{lon});
-                );
-                out body 15;
+                [out:json][timeout:10];
+                nwr["amenity"="hospital"](around:{radius_meters},{lat},{lon});
+                out center 20;
                 """
                 resp = client.post(OVERPASS_API_URL, data={"data": query})
                 resp.raise_for_status()
@@ -57,8 +54,9 @@ def fetch_hospitals_overpass(lat: float, lon: float, radius_km: float = 15.0) ->
                 for el in elements:
                     tags = el.get("tags", {})
                     name = tags.get("name") or tags.get("name:en") or "Emergency Hospital"
-                    h_lat = el.get("lat")
-                    h_lon = el.get("lon")
+                    center = el.get("center") or {}
+                    h_lat = el.get("lat") if el.get("lat") is not None else center.get("lat")
+                    h_lon = el.get("lon") if el.get("lon") is not None else center.get("lon")
 
                     if h_lat is None or h_lon is None:
                         continue

@@ -77,6 +77,9 @@ class MultiStageCollisionDetector:
         # Temporal persistence: count consecutive duration where a_norm >= 3.5g
         # Real vehicle impacts last >30ms; potholes/curbs rebound within <15ms
         sustained_threshold = min(4.0, max(3.0, peak_g * 0.45))
+        step_ms = 10
+        if len(readings) > 1 and readings[1].t_ms > readings[0].t_ms:
+            step_ms = readings[1].t_ms - readings[0].t_ms
         max_sustained_ms = 0
         current_streak_start = None
         last_t = None
@@ -88,13 +91,13 @@ class MultiStageCollisionDetector:
                 last_t = t_ms
             else:
                 if current_streak_start is not None and last_t is not None:
-                    duration = last_t - current_streak_start + 10  # include window interval
+                    duration = last_t - current_streak_start + step_ms  # include window interval
                     if duration > max_sustained_ms:
                         max_sustained_ms = duration
                 current_streak_start = None
 
         if current_streak_start is not None and last_t is not None:
-            duration = last_t - current_streak_start + 10
+            duration = last_t - current_streak_start + step_ms
             if duration > max_sustained_ms:
                 max_sustained_ms = duration
 
