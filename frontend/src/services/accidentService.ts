@@ -196,7 +196,7 @@ export const accidentService = {
       notification_status: event.notification_status || 'SENT',
       acknowledged: false,
       acknowledged_at: null,
-      patient_id: event.patient_id || 'PT-001',
+      patient_id: event.patient_id ?? null,
       detection_reason: event.detection_reason || 'Live simulator injection: 14.5g sensor impact.'
     };
 
