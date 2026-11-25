@@ -9,6 +9,8 @@ node_modules/
 dist/
 *.tsbuildinfo
 *.db
+*.db-shm
+*.db-wal
 .pytest_cache/
 .DS_Store
 .idea/
