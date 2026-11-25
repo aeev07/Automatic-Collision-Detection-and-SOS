@@ -36,6 +36,7 @@ class Settings:
         self.TWILIO_ACCOUNT_SID: str = os.getenv("TWILIO_ACCOUNT_SID", "")
         self.TWILIO_AUTH_TOKEN: str = os.getenv("TWILIO_AUTH_TOKEN", "")
         self.TWILIO_PHONE_NUMBER: str = os.getenv("TWILIO_PHONE_NUMBER", "")
+        self.HOSPITAL_ALERT_PHONE: str = os.getenv("HOSPITAL_ALERT_PHONE", "")
 
 
 @lru_cache(maxsize=1)

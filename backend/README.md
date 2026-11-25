@@ -8,7 +8,7 @@ Python/FastAPI backend for the **Automated Vehicle Collision Detection & Direct 
 |---|---|
 | Event ingestion & deduplication | `backend/services/event_service.py` |
 | Hospital lookup (live + mock fallback) | `backend/integrations/hospital_client.py` |
-| Notifications (mocked SMS + voice) | `backend/notifications/dispatcher.py` |
+| Notifications (mocked by default; opt-in Twilio SMS + voice) | `backend/notifications/dispatcher.py` |
 | Auth (X-API-Key, roles) | `backend/api/auth.py` |
 | Configuration | `backend/config.py` + `backend/.env` |
 
@@ -41,10 +41,19 @@ uvicorn backend.api.main:app --port 8000 --reload
 | `COLLISION_SERVICE_URL` | `http://localhost:8001` | Collision engine service |
 | `API_KEY_HOSPITAL` | `dev-hospital-key` | Hospital read/acknowledge key |
 | `API_KEY_ADMIN` | `dev-admin-key` | Admin key (all permissions) |
-| `MOCK_NOTIFICATIONS` | `true` | Never send real Twilio alerts when `true` |
-| `TWILIO_ACCOUNT_SID` | _(blank)_ | Future Twilio integration |
-| `TWILIO_AUTH_TOKEN` | _(blank)_ | Future Twilio integration |
-| `TWILIO_PHONE_NUMBER` | _(blank)_ | Future Twilio integration |
+| `MOCK_NOTIFICATIONS` | `true` | Real Twilio sending is **off by default**. Keep `true` in dev to log alerts without calling Twilio |
+| `TWILIO_ACCOUNT_SID` | _(blank)_ | Twilio Account SID (required when `MOCK_NOTIFICATIONS=false`) |
+| `TWILIO_AUTH_TOKEN` | _(blank)_ | Twilio Auth Token (required when `MOCK_NOTIFICATIONS=false`; never logged) |
+| `TWILIO_PHONE_NUMBER` | _(blank)_ | Twilio sender number in E.164 format (required when `MOCK_NOTIFICATIONS=false`) |
+| `HOSPITAL_ALERT_PHONE` | _(blank)_ | Verified recipient phone number in E.164 format. Real alerts are sent **only** to this number (never to OSM or mock hospital phone numbers) |
+
+### Twilio Notifications (Opt-In)
+
+- **Off by default:** `MOCK_NOTIFICATIONS=true` is the default, so no real SMS messages or voice calls are sent during development or tests.
+- **Safe fallback:** If `MOCK_NOTIFICATIONS=false` and any of `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`, or `HOSPITAL_ALERT_PHONE` is missing, the dispatcher logs a warning and automatically falls back to mock mode.
+- **Twilio trial accounts:** Trial accounts can only send SMS and place voice calls to **verified numbers** configured in your Twilio Console (`HOSPITAL_ALERT_PHONE`).
+- **India SMS (DLT registration):** Delivering transactional/automated SMS to Indian mobile numbers requires **TRAI DLT (Distributed Ledger Technology)** entity, sender ID, and template registration.
+- **Voice privacy:** Voice calls announce only the collision alert, event ID, vehicle ID, coordinates, severity, and hospital name (no patient name or blood group).
 
 ---
 
@@ -176,6 +185,6 @@ curl -H "X-API-Key: dev-hospital-key" http://localhost:8000/api/v1/patients/PT-0
 
 - **Duplicate prevention**: enforced both at the service layer (early return) and by the DB primary key on `accident_id`.
 - **Hospital fallback**: any network/HTTP error from the hospital service falls back to `mock_hospitals.py` with clearly-labelled test data.
-- **Notifications**: entirely mocked (console + DB log). The only place to add Twilio is `backend/notifications/dispatcher.py`.
+- **Notifications**: mocked by default (`MOCK_NOTIFICATIONS=true`), with an opt-in Twilio SMS + voice path in `backend/notifications/dispatcher.py` targeting only `HOSPITAL_ALERT_PHONE`.
 - **Auth roles**: `hospital` → read events/patients, acknowledge; `admin` → all + create patients.
 - **Postgres**: change only `DATABASE_URL` in `.env`. All models use SQLAlchemy ORM with no SQLite-specific SQL.

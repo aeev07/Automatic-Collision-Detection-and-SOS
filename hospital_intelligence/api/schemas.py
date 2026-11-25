@@ -10,15 +10,14 @@ class NearestHospitalsRequest(BaseModel):
 
 class HospitalItem(BaseModel):
     name: str = Field(..., json_schema_extra={"example": "Example Hospital (demo data)"})
-    latitude: float = Field(..., json_schema_extra={"example": 26.8703})
-    longitude: float = Field(..., json_schema_extra={"example": 80.9174})
-    address: Optional[str] = Field(None, json_schema_extra={"example": None})
-    phone: Optional[str] = Field(None, json_schema_extra={"example": None})
+    latitude: float = Field(..., json_schema_extra={"example": 26.8510})
+    longitude: float = Field(..., json_schema_extra={"example": 80.9450})
+    address: Optional[str] = Field(None, description="From OpenStreetMap when available, otherwise null")
+    phone: Optional[str] = Field(None, description="From OpenStreetMap when available, otherwise null. Never invented.")
     distance_km: float = Field(..., description="Straight line Haversine distance in km")
     road_distance_km: float = Field(..., description="Actual road travel distance in km")
     eta_min: int = Field(..., description="Estimated travel time in minutes")
     route: List[List[float]] = Field(default_factory=list, description="List of [latitude, longitude] pairs representing route geometry")
-
 
 class NearestHospitalsResponse(BaseModel):
     hospitals: List[HospitalItem] = Field(default_factory=list)
